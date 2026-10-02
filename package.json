@@ -1,0 +1,12 @@
+{
+  "name": "@ioweb/docker-development-stack-typescript",
+  "version": "1.0.0",
+  "description": "Project-neutral Node.js and TypeScript Docker and DDEV stack",
+  "type": "commonjs",
+  "bin": {
+    "ioweb-typescript": "src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "node_version": "24",
+  "consumer_config": ".ddev/ioweb-typescript.json",
+  "ddev_runtime_config": ".ddev/config.ioweb-typescript-runtime.yaml",
+  "ddev_runtime_compose": ".ddev/docker-compose.ioweb-typescript-runtime.yaml"
+}

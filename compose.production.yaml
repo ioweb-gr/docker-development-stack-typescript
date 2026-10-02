@@ -1,0 +1,32 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/typescript/Dockerfile
+      args:
+        NODE_VERSION: ${NODE_VERSION:-24}
+    command: ["sh", "-lc", "${APP_COMMAND:-npm start}"]
+    env_file:
+      - path: ${APP_ENV_FILE:-.env.production}
+        required: false
+    environment:
+      NODE_ENV: production
+      APP_HEALTHCHECK_URL: ${APP_HEALTHCHECK_URL:?Set APP_HEALTHCHECK_URL to the consumer application readiness URL}
+    ports:
+      - "${APP_HOST_PORT:-3000}:${APP_CONTAINER_PORT:?Set APP_CONTAINER_PORT to the application listener port}"
+    volumes:
+      - app_data:/app/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch(process.env.APP_HEALTHCHECK_URL).then(r=>process.exit(r.status>=200&&r.status<400?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  app_data:
