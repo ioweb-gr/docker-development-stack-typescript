@@ -109,6 +109,7 @@ async function smoke({ umbrellaRoot, stackRoot = path.resolve(__dirname, '..') }
   const composeProject = ('iowebtsprod' + path.basename(root).slice(-7)).toLowerCase();
   const composeFile = path.join(root, 'docker', 'typescript', 'compose.production.yaml');
   const composePrefix = ['compose', '--project-name', composeProject, '--project-directory', root, '-f', composeFile];
+  let productionEnv = process.env;
   let ddevAttempted = false;
   let composeAttempted = false;
 
@@ -133,7 +134,7 @@ async function smoke({ umbrellaRoot, stackRoot = path.resolve(__dirname, '..') }
     ddevAttempted = false;
 
     const hostPort = await freePort();
-    const env = {
+    productionEnv = {
       ...process.env,
       APP_CONTAINER_PORT: '3000',
       APP_HOST_PORT: String(hostPort),
@@ -141,10 +142,10 @@ async function smoke({ umbrellaRoot, stackRoot = path.resolve(__dirname, '..') }
       APP_COMMAND: 'PORT=3000 npm start',
     };
     fs.writeFileSync(path.join(root, '.env.production'), 'SMOKE_APP_VALUE=from-env-file\n');
-    run('docker', [...composePrefix, 'config', '--quiet'], root, { env });
+    run('docker', [...composePrefix, 'config', '--quiet'], root, { env: productionEnv });
     composeAttempted = true;
-    run('docker', [...composePrefix, 'up', '--build', '--detach'], root, { env });
-    const container = run('docker', [...composePrefix, 'ps', '--quiet', 'app'], root, { env });
+    run('docker', [...composePrefix, 'up', '--build', '--detach'], root, { env: productionEnv });
+    const container = run('docker', [...composePrefix, 'ps', '--quiet', 'app'], root, { env: productionEnv });
     if (!container) throw new Error('Production Compose did not create its app container.');
     let health = 'starting';
     for (let attempt = 0; attempt < 30; attempt += 1) {
@@ -160,7 +161,10 @@ async function smoke({ umbrellaRoot, stackRoot = path.resolve(__dirname, '..') }
     console.log('Production smoke passed: multi-stage Docker build, non-root service, HTTP healthcheck, and published route.');
   } finally {
     if (composeAttempted) {
-      run('docker', [...composePrefix, 'down', '--volumes', '--remove-orphans', '--rmi', 'local'], root, { allowFailure: true });
+      run('docker', [...composePrefix, 'down', '--volumes', '--remove-orphans', '--rmi', 'local'], root, {
+        env: productionEnv,
+        allowFailure: true,
+      });
     }
     if (ddevAttempted) {
       run('ddev', ['delete', '--omit-snapshot', '--yes'], root, { allowFailure: true });
