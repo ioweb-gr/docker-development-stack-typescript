@@ -138,7 +138,7 @@ function defaultManifest() {
     $schema: '../docker/typescript/schemas/consumer-config.schema.json',
     node_version: STACK_CONFIG.node_version,
     processes: [],
-    volume_paths: DEFAULT_VOLUME_PATHS,
+    volume_paths: [...DEFAULT_VOLUME_PATHS],
     persistent_paths: ['data'],
     healthchecks: [],
   };
